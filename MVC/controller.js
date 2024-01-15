@@ -12,7 +12,18 @@ class Controller {
             res.status(200).send(topics);
 
         } catch(err) {
-            console.log(err);
+            next(err);
+        }
+    }
+
+    async getEndpoints(req, res, next) {
+
+        try {
+            const { fetchAllEndpoints } = this.model;
+            const endpoints = await fetchAllEndpoints();
+            res.status(200).send(endpoints);
+
+        } catch(err) {
             next(err);
         }
     }

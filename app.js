@@ -1,4 +1,5 @@
 const express = require('express');
+const db = require('./db/connection');
 const Model = require('./MVC/model');
 const Controller = require('./MVC/controller');
 
@@ -6,13 +7,14 @@ const app = express();
 const apiRouter = express.Router();
 const topicsRouter = express.Router();
 
-const model = new Model();
+const model = new Model(db);
 const controller = new Controller(model);
 
 app.use(express.json());
 app.use('/api', apiRouter);
 apiRouter.use('/topics', topicsRouter);
 
+apiRouter.get('/', async (req, res, next) => controller.getEndpoints(req, res, next));
 topicsRouter.get('/', async(req, res, next) => await controller.getTopics(req, res, next));
 
 // Error handling.
