@@ -9,7 +9,7 @@ class Controller {
         try {
             const { fetchAllTopics } = this.model;
             const topics = await fetchAllTopics();
-            res.status(200).send(topics);
+            res.status(200).send({ topics });
 
         } catch(err) {
             next(err);
@@ -21,7 +21,7 @@ class Controller {
         try {
             const { fetchAllEndpoints } = this.model;
             const endpoints = await fetchAllEndpoints();
-            res.status(200).send(endpoints);
+            res.status(200).send({ endpoints });
 
         } catch(err) {
             next(err);
@@ -34,7 +34,7 @@ class Controller {
             const { article_id:id } = req.params;
             const { fetchArticleByID } = this.model;
             const article = await fetchArticleByID(id);
-            res.status(200).send(article);
+            res.status(200).send({ article });
 
         } catch(err) {
             next(err);
@@ -46,7 +46,19 @@ class Controller {
         try {
             const { fetchAllArticles } = this.model;
             const articles = await fetchAllArticles();
-            res.status(200).send(articles);
+            res.status(200).send({ articles });
+        } catch(err) {
+            next(err);
+        }
+    }
+
+    async getArticleComments(req, res, next) {
+
+        try {
+            const { article_id:id } = req.params;
+            const { fetchCommentsByArticleID } = this.model;
+            const comments = await fetchCommentsByArticleID(id);
+            res.status(200).send({ comments });
         } catch(err) {
             next(err);
         }
