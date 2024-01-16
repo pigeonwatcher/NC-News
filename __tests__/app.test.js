@@ -13,11 +13,11 @@ afterAll(() => db.end());
 describe('/GET', () => {
     describe('Topics', () => {
         test('GET: 200 Return an array containing all topics', async () => {
-            const response = await request(app).get('/api/topics');
+            const { status, body: { topics } } = await request(app).get('/api/topics');
 
-            expect(response.status).toBe(200);
-            expect(Array.isArray(response.body.topics)).toBe(true);
-            response.body.topics.forEach((topic) => {
+            expect(status).toBe(200);
+            expect(Array.isArray(topics)).toBe(true);
+            topics.forEach((topic) => {
                 expect(typeof topic.description).toBe('string');
                 expect(typeof topic.slug).toBe('string');
             })
@@ -25,24 +25,24 @@ describe('/GET', () => {
     })
     describe('Endpoints', () => {
         test('GET: 200 Return an object describing all the avaliable endpoints', async () => {
-            const response = await request(app).get('/api');
+            const { status, body: { endpoints } } = await request(app).get('/api');
 
-            const endpoints = JSON.parse(await fs.readFile('./endpoints.json', 'utf8'));
+            const endpointsRef = JSON.parse(await fs.readFile('./endpoints.json', 'utf8'));
 
-            expect(response.status).toBe(200);
-            expect(typeof response.body.endpoints).toBe('object');
-            expect(Object.keys(response.body.endpoints).length).toBe(Object.keys(endpoints).length);
-            for(const key in response.body.endpoints) {
-                expect(response.body.endpoints[key]).toEqual(endpoints[key]);
+            expect(status).toBe(200);
+            expect(typeof endpoints).toBe('object');
+            expect(Object.keys(endpoints).length).toBe(Object.keys(endpointsRef).length);
+            for(const key in endpoints) {
+                expect(endpoints[key]).toEqual(endpointsRef[key]);
             }
         })
     })
     describe('Articles', () => {
-        test('GET: 200 Return an object of the article with the matching article id', async () => {
-            const response = await request(app).get('/api/articles/1');
+        test('GET: 200 Return an object of the article with the matching article ID', async () => {
+            const { status, body: { article } } = await request(app).get('/api/articles/1');
 
-            expect(response.status).toBe(200);
-            expect(response.body.article).toMatchObject({
+            expect(status).toBe(200);
+            expect(article).toMatchObject({
                 article_id: expect.any(Number),
                 title: expect.any(String),
                 topic: expect.any(String),
@@ -53,26 +53,26 @@ describe('/GET', () => {
                 article_img_url: expect.any(String)
             })
         })
-        test('GET: 400 Return an error if given an invalid article id', async () => {
-            const response = await request(app).get('/api/articles/abc');
+        test('GET: 400 Return an error if given an invalid article ID', async () => {
+            const { status, body } = await request(app).get('/api/articles/abc');
 
-            expect(response.status).toBe(400);
-            expect(response.body).toEqual({msg: 'Bad Request'});
+            expect(status).toBe(400);
+            expect(body).toEqual({msg: 'Bad Request'});
         })
-        test('GET: 404 Return an error if given a non-existent article id', async () => {
-            const response = await request(app).get('/api/articles/99999');
+        test('GET: 404 Return an error if given a non-existent article ID', async () => {
+            const { status, body } = await request(app).get('/api/articles/99999');
 
-            expect(response.status).toBe(404);
-            expect(response.body).toEqual({msg: `No article was found with the id 99999`});
+            expect(status).toBe(404);
+            expect(body).toEqual({msg: `No article was found with the id 99999`});
         })
         test('GET: 200 Return an array containing all articles (excluding body property) and sorted by date in descending order)', async  () => {
-            const response = await request(app).get('/api/articles');
+            const { status, body: { articles } } = await request(app).get('/api/articles');
 
-            expect(response.status).toBe(200);
-            expect(Array.isArray(response.body.articles)).toBe(true);
-            expect(response.body.articles.length).not.toBe(0);
-            expect(response.body.articles).toBeSortedBy('created_at', { descending: true })
-            response.body.articles.forEach((article) => {
+            expect(status).toBe(200);
+            expect(Array.isArray(articles)).toBe(true);
+            expect(articles.length).not.toBe(0);
+            expect(articles).toBeSortedBy('created_at', { descending: true })
+            articles.forEach((article) => {
                 expect(article).toMatchObject({
                     article_id: expect.any(Number),
                     title: expect.any(String),
@@ -88,14 +88,14 @@ describe('/GET', () => {
     })
     describe("Comments", () => {
 
-        test('GET: 200 Return an array of comments with the matching article id', async () => {
-            const response = await request(app).get('/api/articles/1/comments');
+        test('GET: 200 Return an array of comments with the matching article ID', async () => {
+            const { status, body: { comments } } = await request(app).get('/api/articles/1/comments');
 
-            expect(response.status).toBe(200);
+            expect(status).toBe(200);
 
-            expect(response.body.comments).toBeSortedBy('created_at', { ascending: true })
+            expect(comments).toBeSortedBy('created_at', { ascending: true })
 
-            response.body.comments.forEach((comment) => {
+            comments.forEach((comment) => {
                 expect(comment).toMatchObject({
                     comment_id: expect.any(Number),
                     votes: expect.any(Number),
@@ -106,23 +106,103 @@ describe('/GET', () => {
                 });
             })
         })
-        test('GET: 200 Return an empty array if given a valid article id with no comments', async () => {
-            const response = await request(app).get('/api/articles/8/comments');
+        test('GET: 200 Return an empty array if given a valid article ID with no comments', async () => {
+            const { status, body: { comments } } = await request(app).get('/api/articles/8/comments');
 
-            expect(response.status).toBe(200);
-            expect(response.body.comments.length).toBe(0);
+            expect(status).toBe(200);
+            expect(comments.length).toBe(0);
         })
         test('GET: 400 Return an error if given an invalid article id', async () => {
-            const response = await request(app).get('/api/articles/abc/comments');
+            const { status, body } = await request(app).get('/api/articles/abc/comments');
 
-            expect(response.status).toBe(400);
-            expect(response.body).toEqual({msg: 'Bad Request'});
+            expect(status).toBe(400);
+            expect(body).toEqual({msg: 'Bad Request'});
         })
         test('GET: 404 Return an error if given a non-existent article id', async () => {
-            const response = await request(app).get('/api/articles/99999/comments');
+            const { status, body } = await request(app).get('/api/articles/99999/comments');
 
-            expect(response.status).toBe(404);
-            expect(response.body).toEqual({msg: `No article was found with the id 99999`});
+            expect(status).toBe(404);
+            expect(body).toEqual({msg: `No article was found with the id 99999`});
+        })
+    })
+})
+
+describe('/POST', () => {
+    describe('Comments', () => {
+        test('POST: 201 Adds a comment to the database and returns the posted comment', async () => {
+
+            const commentToPost = {
+                username: 'butter_bridge',
+                body: 'Hello World!'
+            }
+
+            const { status, body: { comment } } = await request(app).post('/api/articles/1/comments').send(commentToPost);
+
+            expect(status).toBe(201);
+            expect(comment).toMatchObject({
+                comment_id: expect.any(Number),
+                votes: expect.any(Number),
+                created_at: expect.any(String),
+                author: commentToPost.username,
+                body: commentToPost.body,
+                article_id: expect.any(Number),
+            });
+        })
+        test('POST: 400 Return an error if given an invalid comment format', async () => {
+            const commentToPost = {
+                user: 'butter_bridge',
+                text: 'Hello World!'
+            }
+
+            const { status, body } = await request(app).post('/api/articles/1/comments').send(commentToPost);
+
+            expect(status).toBe(400);
+            expect(body).toEqual({msg: 'Bad Request'});
+        })
+        test('POST: 400 Returns an error if post has additional keys', async () => {
+            const commentToPost = {
+                username: 'butter_bridge',
+                body: 'Hello World!',
+                created_at: '1000BC'
+            }
+
+            const { status, body } = await request(app).post('/api/articles/1/comments').send(commentToPost);
+
+            expect(status).toBe(400);
+            expect(body).toEqual({msg: 'Bad Request'})
+        })
+        test('POST: 400 Returns an error if post has correct keys but incorrect values', async () => {
+            const commentToPost = {
+                username: 123,
+                body: NaN,
+            }
+
+            const { status, body } = await request(app).post('/api/articles/1/comments').send(commentToPost);
+
+            expect(status).toBe(400);
+            expect(body).toEqual({msg: 'Bad Request'})
+        })
+        test('POST: 400 Return an error if given an invalid article id', async () => {
+            const commentToPost = {
+                username: 'butter_bridge',
+                body: 'Hello World!'
+            }
+
+            const { status, body } = await request(app).post('/api/articles/abc/comments').send(commentToPost);
+
+            expect(status).toBe(400);
+            expect(body).toEqual({msg: 'Bad Request'});
+        })
+        test('POST: 404 Return an error if given a non-existent article id', async () => {
+            const commentToPost = {
+                username: 'butter_bridge',
+                body: 'Hello World!'
+            }
+
+            const { status, body } = await request(app).post('/api/articles/99999/comments').send(commentToPost);
+
+            expect(status).toBe(404);
+            expect(body).toEqual({msg: `No article was found with the id 99999`});
         })
     })
 })

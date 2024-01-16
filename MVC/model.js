@@ -7,6 +7,7 @@ class Model {
     #validArticleColumns;
     static #endpointsPath = './endpoints.json';
     static #validOrders = ['asc', 'desc'];
+    static #validComment = { username: 'string', body: 'string' }
 
     constructor(db) {
         this.#db = db;
@@ -19,6 +20,7 @@ class Model {
         this.fetchArticleByID = this.fetchArticleByID.bind(this);
         this.fetchAllArticles = this.fetchAllArticles.bind(this);
         this.fetchCommentsByArticleID = this.fetchCommentsByArticleID.bind(this);
+        this.addCommentToArticle = this.addCommentToArticle.bind(this);
     }
 
     async init() {
@@ -37,12 +39,12 @@ class Model {
     async fetchArticleByID(id) {
 
         try {
-            const { rows:article } = await this.#db.query(`SELECT * FROM articles WHERE article_id=$1`, [id]);
-            if(article.length === 0) {
-                return Promise.reject({status: 404, msg: `No article was found with the id ${id}`})
+            const article = await this.#checkValidArticleID(id);
+            if(!article) {
+                return Promise.reject(this.#errorArticleIDNotFound(id))
             }
     
-            return article[0];
+            return article;
 
         } catch(err) {
             return Promise.reject(err);
@@ -76,9 +78,8 @@ class Model {
                 order = 'asc';
             }
             // Check if article exists.
-            const { rows:article } = await this.#db.query(`SELECT * FROM articles WHERE article_id=$1`, [id]);
-            if(article.length === 0) {
-                return Promise.reject({status: 404, msg: `No article was found with the id ${id}`});
+            if(!await this.#checkValidArticleID(id)) {
+                return Promise.reject(this.#errorArticleIDNotFound(id));
             }
 
             const { rows:comments } = await this.#db.query(`SELECT * FROM comments WHERE comments.article_id=$1 ORDER BY ${sortBy} ${order}`, [id]);
@@ -89,9 +90,69 @@ class Model {
         }
     }
 
+    async addCommentToArticle(id, commentReq) {
+
+        try {
+
+            if(!this.#checkIfValidObject(Model.#validComment, commentReq)) {
+                return Promise.reject({ status: 400 });
+            }
+
+            if(!await this.#checkValidArticleID(id)) {
+                return Promise.reject(this.#errorArticleIDNotFound(id));
+            }
+
+            const { rows:comment } = await this.#db.query(
+            `INSERT INTO comments
+            (article_id, author, body)
+            VALUES
+            ($1, $2, $3)
+            RETURNING *
+            `, [id, commentReq.username, commentReq.body]);
+
+            return comment[0];
+
+        } catch(err) {
+            console.log(err);
+            return Promise.reject(err);
+        }
+    }
+
     async #getArticlesColumns() {
         const { rows:columnNames } = await this.#db.query(`SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='articles'`);
         return columnNames.map((column) => { return column.column_name })
+    }
+
+    async #checkValidArticleID(id) {
+        const { rows:article } = await this.#db.query(`SELECT * FROM articles WHERE article_id=$1`, [id]);
+        if(article.length === 0) {
+            return null;
+        }
+
+        return article[0];
+    }
+
+    #errorArticleIDNotFound(id) {
+        return {status: 404, msg: `No article was found with the id ${id}`};
+    }
+
+    #checkIfValidObject(validObj, testObj) {
+
+        if(Object.keys(testObj).length > Object.keys(validObj).length) {
+            return false;
+        }
+
+        for(const key in testObj) {
+        
+            if(!validObj[key]) {
+                return false;
+            }
+            else if(((typeof testObj[key]) !== (typeof validObj[key]))) {
+                return false; // This is handled by the query throwing an error. Although maybe more efficient?
+            }
+        }
+    
+        return true;
     }
 }
 
