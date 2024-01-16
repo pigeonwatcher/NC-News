@@ -20,12 +20,13 @@ apiRouter.use('/articles', articlesRouter);
 apiRouter.get('/', async(req, res, next) => controller.getEndpoints(req, res, next));
 topicsRouter.get('/', async(req, res, next) => await controller.getTopics(req, res, next));
 articlesRouter.get('/', async(req, res, next) => await controller.getArticles(req, res, next));
-articlesRouter.get('/:article_id/', async(req, res, next) => await controller.getArticle(req, res, next))
-articlesRouter.get('/:article_id/comments', async(req, res, next) => await controller.getArticleComments(req, res, next))
+articlesRouter.get('/:article_id/', async(req, res, next) => await controller.getArticle(req, res, next));
+articlesRouter.get('/:article_id/comments', async(req, res, next) => await controller.getArticleComments(req, res, next));
+articlesRouter.post('/:article_id/comments', async(req, res, next) => await controller.postComment(req, res, next));
 
 // Error handling.
 app.use((err, req, res, next) => {
-    if (err.code === '22P02' || err.code === '42703') {
+    if (err.code === '22P02' || err.code === '42703'  || err.code === '23502' || err.status === 400) {
         res.status(400).send({msg: 'Bad Request'})
     }
     next(err)
@@ -34,6 +35,13 @@ app.use((err, req, res, next) => {
 app.use((err, req, res, next) => {
     if (err.status === 404) {
         res.status(404).send({msg: err.msg})
+    }
+    next(err)
+})
+
+app.use((err, req, res, next) => {
+    if (err.status === 413) {
+        res.status(413).send({msg: 'Payload Too Large'})
     }
     next(err)
 })

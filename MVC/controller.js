@@ -63,6 +63,18 @@ class Controller {
             next(err);
         }
     }
+
+    async postComment(req, res, next) {
+        try {
+            const { article_id:id } = req.params;
+            const commentReq = req.body;
+            const { addCommentToArticle } = this.model;
+            const comment = await addCommentToArticle(id, commentReq);
+            res.status(201).send({ comment });
+        } catch(err) {
+            next(err);
+        }
+    }
 }
 
 module.exports = Controller;
