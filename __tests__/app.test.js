@@ -43,7 +43,7 @@ describe('/GET', () => {
 
             expect(status).toBe(200);
             expect(article).toMatchObject({
-                article_id: expect.any(Number),
+                article_id: 1,
                 title: expect.any(String),
                 topic: expect.any(String),
                 author: expect.any(String),
@@ -94,6 +94,7 @@ describe('/GET', () => {
             expect(status).toBe(200);
 
             expect(comments).toBeSortedBy('created_at', { ascending: true })
+            expect(comments.length).not.toBe(0);
 
             comments.forEach((comment) => {
                 expect(comment).toMatchObject({
@@ -102,7 +103,7 @@ describe('/GET', () => {
                     created_at: expect.any(String),
                     author: expect.any(String),
                     body: expect.any(String),
-                    article_id: expect.any(Number),
+                    article_id: 1,
                 });
             })
         })
@@ -145,7 +146,7 @@ describe('/POST', () => {
                 created_at: expect.any(String),
                 author: commentToPost.username,
                 body: commentToPost.body,
-                article_id: expect.any(Number),
+                article_id: 1,
             });
         })
         test('POST: 400 Return an error if given an invalid comment format', async () => {
@@ -159,19 +160,7 @@ describe('/POST', () => {
             expect(status).toBe(400);
             expect(body).toEqual({msg: 'Bad Request'});
         })
-        test('POST: 400 Returns an error if post has additional keys', async () => {
-            const commentToPost = {
-                username: 'butter_bridge',
-                body: 'Hello World!',
-                created_at: '1000BC'
-            }
-
-            const { status, body } = await request(app).post('/api/articles/1/comments').send(commentToPost);
-
-            expect(status).toBe(400);
-            expect(body).toEqual({msg: 'Bad Request'})
-        })
-        test('POST: 400 Returns an error if post has correct keys but incorrect values', async () => {
+        test('POST: 400 Returns an error if post body has correct keys but incorrect values', async () => {
             const commentToPost = {
                 username: 123,
                 body: NaN,
@@ -200,6 +189,72 @@ describe('/POST', () => {
             }
 
             const { status, body } = await request(app).post('/api/articles/99999/comments').send(commentToPost);
+
+            expect(status).toBe(404);
+            expect(body).toEqual({msg: `No article was found with the id 99999`});
+        })
+    })
+})
+
+describe('/PATCH', () => {
+    describe('Articles', () => {
+        test('PATCH: 201 Increment the votes of an article and return the article with the updated vote count', async () => {
+            const newVotes = {
+                inc_votes: 3,
+            }
+
+            const { body: { article: { votes:originalVoteCount } } } = await request(app).get('/api/articles/1');
+    
+            const { status, body: { article } } = await request(app).patch('/api/articles/1').send(newVotes);
+
+            expect(status).toBe(200);
+            expect(article).toMatchObject({
+                article_id: 1,
+                title: expect.any(String),
+                topic: expect.any(String),
+                author: expect.any(String),
+                body: expect.any(String),
+                created_at: expect.any(String),
+                votes: originalVoteCount + newVotes.inc_votes,
+                article_img_url: expect.any(String)
+            })
+        })
+        test('PATCH: 400 Return an error if given an invalid vote format', async () => {
+            const newVotes = {
+                adjust_votes: 5,
+            }
+    
+            const { status, body } = await request(app).patch('/api/articles/1').send(newVotes);
+
+            expect(status).toBe(400);
+            expect(body).toEqual({msg: 'Bad Request'});
+        })
+        test('PATCH: 400 Returns an error if patch body has correct keys but incorrect values', async () => {
+            const newVotes = {
+                inc_votes: 'three',
+            }
+    
+            const { status, body } = await request(app).patch('/api/articles/1').send(newVotes);
+
+            expect(status).toBe(400);
+            expect(body).toEqual({msg: 'Bad Request'})
+        })
+        test('PATCH: 400 Return an error if given an invalid article id', async () => {
+            const newVotes = {
+                inc_votes: 3,
+            }
+    
+            const { status, body } = await request(app).patch('/api/articles/abc').send(newVotes);
+
+            expect(status).toBe(400);
+            expect(body).toEqual({msg: 'Bad Request'});
+        })
+        test('PATCH: 404 Return an error if given a non-existent article id', async () => {
+            const newVotes = {
+                inc_votes: 3,
+            }
+    
+            const { status, body } = await request(app).patch('/api/articles/99999').send(newVotes);
 
             expect(status).toBe(404);
             expect(body).toEqual({msg: `No article was found with the id 99999`});

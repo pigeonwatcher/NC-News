@@ -8,6 +8,7 @@ class Model {
     static #endpointsPath = './endpoints.json';
     static #validOrders = ['asc', 'desc'];
     static #validComment = { username: 'string', body: 'string' }
+    static #validVote = { inc_votes: 'number' }
 
     constructor(db) {
         this.#db = db;
@@ -21,6 +22,7 @@ class Model {
         this.fetchAllArticles = this.fetchAllArticles.bind(this);
         this.fetchCommentsByArticleID = this.fetchCommentsByArticleID.bind(this);
         this.addCommentToArticle = this.addCommentToArticle.bind(this);
+        this.incrementArticleVotes = this.incrementArticleVotes.bind(this);
     }
 
     async init() {
@@ -117,6 +119,26 @@ class Model {
         }
     }
 
+    async incrementArticleVotes(id, increment) {
+
+        if(!this.#checkIfValidObject(Model.#validVote, increment)) {
+            return Promise.reject({ status: 400 });
+        }
+
+        if(!await this.#checkValidArticleID(id)) {
+            return Promise.reject(this.#errorArticleIDNotFound(id));
+        }
+
+        const { rows:article } = await this.#db.query(
+        `UPDATE articles
+        SET votes = votes + $1
+        WHERE article_id=$2
+        RETURNING *
+        `, [increment.inc_votes, id])
+
+        return article[0];
+    }
+
     async #getArticlesColumns() {
         const { rows:columnNames } = await this.#db.query(`SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='articles'`);
         return columnNames.map((column) => { return column.column_name })
@@ -137,7 +159,7 @@ class Model {
 
     #checkIfValidObject(validObj, testObj) {
 
-        if(Object.keys(testObj).length > Object.keys(validObj).length) {
+        if(Object.keys(testObj).length !== Object.keys(validObj).length) {
             return false;
         }
 
@@ -146,7 +168,7 @@ class Model {
             if(!validObj[key]) {
                 return false;
             }
-            else if(((typeof testObj[key]) !== (typeof validObj[key]))) {
+            else if(((typeof testObj[key]) !== validObj[key])) {
                 return false; // This is handled by the query throwing an error. Although maybe more efficient?
             }
         }

@@ -75,6 +75,18 @@ class Controller {
             next(err);
         }
     }
+
+    async patchArticleVotes(req, res, next) {
+        try {
+            const { article_id:id } = req.params;
+            const body = req.body;
+            const { incrementArticleVotes } = this.model;
+            const article = await incrementArticleVotes(id, body);
+            res.status(200).send({ article });
+        } catch(err) {
+            next(err);
+        }
+    }
 }
 
 module.exports = Controller;

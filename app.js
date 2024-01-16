@@ -22,7 +22,10 @@ topicsRouter.get('/', async(req, res, next) => await controller.getTopics(req, r
 articlesRouter.get('/', async(req, res, next) => await controller.getArticles(req, res, next));
 articlesRouter.get('/:article_id/', async(req, res, next) => await controller.getArticle(req, res, next));
 articlesRouter.get('/:article_id/comments', async(req, res, next) => await controller.getArticleComments(req, res, next));
+
 articlesRouter.post('/:article_id/comments', async(req, res, next) => await controller.postComment(req, res, next));
+
+articlesRouter.patch('/:article_id', async(req, res, next) => await controller.patchArticleVotes(req, res, next))
 
 // Error handling.
 app.use((err, req, res, next) => {
