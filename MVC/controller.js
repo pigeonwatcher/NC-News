@@ -40,6 +40,17 @@ class Controller {
             next(err);
         }
     }
+
+    async getArticles(req, res, next) {
+
+        try {
+            const { fetchAllArticles } = this.model;
+            const articles = await fetchAllArticles();
+            res.status(200).send(articles);
+        } catch(err) {
+            next(err);
+        }
+    }
 }
 
 module.exports = Controller;

@@ -9,6 +9,7 @@ const topicsRouter = express.Router();
 const articlesRouter = express.Router();
 
 const model = new Model(db);
+(async() => { await model.init(); })();
 const controller = new Controller(model);
 
 app.use(express.json());
@@ -16,8 +17,9 @@ app.use('/api', apiRouter);
 apiRouter.use('/topics', topicsRouter);
 apiRouter.use('/articles', articlesRouter);
 
-apiRouter.get('/', async (req, res, next) => controller.getEndpoints(req, res, next));
+apiRouter.get('/', async(req, res, next) => controller.getEndpoints(req, res, next));
 topicsRouter.get('/', async(req, res, next) => await controller.getTopics(req, res, next));
+articlesRouter.get('/', async(req, res, next) => await controller.getArticles(req, res, next));
 articlesRouter.get('/:article_id', async(req, res, next) => await controller.getArticle(req, res, next))
 
 // Error handling.

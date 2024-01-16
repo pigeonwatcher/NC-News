@@ -17,7 +17,6 @@ describe('/GET', () => {
 
             expect(response.status).toBe(200);
             expect(Array.isArray(response.body)).toBe(true);
-            
             response.body.forEach((obj) => {
                 expect(typeof obj.description).toBe('string');
                 expect(typeof obj.slug).toBe('string');
@@ -33,7 +32,6 @@ describe('/GET', () => {
             expect(response.status).toBe(200);
             expect(typeof response.body).toBe('object');
             expect(Object.keys(response.body).length).toBe(Object.keys(endpoints).length);
-
             for(const key in response.body) {
                 expect(response.body[key]).toEqual(endpoints[key]);
             }
@@ -42,7 +40,7 @@ describe('/GET', () => {
     describe('Articles', () => {
         test('GET: 200 Return an object of the article with the matching article id', async () => {
             const response = await request(app).get('/api/articles/1');
-            console.log(response.body);
+
             expect(response.status).toBe(200);
             expect(response.body).toMatchObject({
                 article_id: expect.any(Number),
@@ -66,6 +64,25 @@ describe('/GET', () => {
 
             expect(response.status).toBe(404);
             expect(response.body).toEqual({msg: `No article was found with the id 99999`});
+        })
+        test('GET: 200 Return an array containing all articles (excluding body property) and sorted by date in descending order)', async  () => {
+            const response = await request(app).get('/api/articles');
+
+            expect(response.status).toBe(200);
+            expect(Array.isArray(response.body)).toBe(true);
+            expect(response.body).toBeSortedBy('created_at', { descending: true })
+            response.body.forEach((obj) => {
+                expect(obj).toMatchObject({
+                    article_id: expect.any(Number),
+                    title: expect.any(String),
+                    topic: expect.any(String),
+                    author: expect.any(String),
+                    created_at: expect.any(String),
+                    votes: expect.any(Number),
+                    article_img_url: expect.any(String),
+                    comment_count: expect.any(String)
+                });
+            })
         })
     })
 })

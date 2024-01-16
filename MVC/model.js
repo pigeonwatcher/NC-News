@@ -4,16 +4,24 @@ const format = require('pg-format');
 class Model {
 
     #db;
+    #validArticleColumns;
     static #endpointsPath = './endpoints.json';
+    static #validOrders = ['asc', 'desc'];
 
     constructor(db) {
         this.#db = db;
 
         // Binding functionss here allow them to be more easily deconstructed in the controller :)
         // Otherwise deconstruction will cause the function to loose its relationship with the Model object.
+        this.init = this.init.bind(this);
         this.fetchAllTopics = this.fetchAllTopics.bind(this);
         this.fetchAllEndpoints = this.fetchAllEndpoints.bind(this);
         this.fetchArticleByID = this.fetchArticleByID.bind(this);
+        this.fetchAllArticles = this.fetchAllArticles.bind(this);
+    }
+
+    async init() {
+        this.#validArticleColumns = await this.#getArticlesColumns(); // For future use.
     }
 
     async fetchAllTopics() {
@@ -38,7 +46,31 @@ class Model {
         } catch(err) {
             return Promise.reject(err);
         }
+    }
 
+    async fetchAllArticles(sortBy = 'created_at', order = 'desc') {
+
+        try {
+
+            if(!Model.#validOrders.includes(order.toLowerCase())) {
+                // In case order is not valid, go to default order (desc).
+                order = 'desc';
+            }
+
+            const { rows:articles } = await this.#db.query(
+            `SELECT article_id, title, topic, author, created_at, votes, article_img_url,
+            (SELECT COUNT(*) FROM comments WHERE articles.article_id=comments.article_id) as comment_count
+            FROM articles
+            ORDER BY ${sortBy} ${order}`);
+            return articles;
+        } catch(err) {
+            return Promise.reject(err);
+        }
+    }
+
+    async #getArticlesColumns() {
+        const { rows:columnNames } = await this.#db.query(`SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='articles'`);
+        return columnNames.map((column) => { return column.column_name })
     }
 }
 
