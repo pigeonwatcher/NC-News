@@ -18,6 +18,7 @@ class Model {
         this.fetchAllEndpoints = this.fetchAllEndpoints.bind(this);
         this.fetchArticleByID = this.fetchArticleByID.bind(this);
         this.fetchAllArticles = this.fetchAllArticles.bind(this);
+        this.fetchCommentsByArticleID = this.fetchCommentsByArticleID.bind(this);
     }
 
     async init() {
@@ -38,7 +39,7 @@ class Model {
         try {
             const { rows:article } = await this.#db.query(`SELECT * FROM articles WHERE article_id=$1`, [id]);
             if(article.length === 0) {
-                return Promise.reject({status: '404', msg: `No article was found with the id ${id}`})
+                return Promise.reject({status: 404, msg: `No article was found with the id ${id}`})
             }
     
             return article[0];
@@ -63,6 +64,26 @@ class Model {
             FROM articles
             ORDER BY ${sortBy} ${order}`);
             return articles;
+        } catch(err) {
+            return Promise.reject(err);
+        }
+    }
+
+    async fetchCommentsByArticleID(id, sortBy = 'created_at', order = 'asc') {
+
+        try {
+            if(!Model.#validOrders.includes(order.toLowerCase())) {
+                order = 'asc';
+            }
+            // Check if article exists.
+            const { rows:article } = await this.#db.query(`SELECT * FROM articles WHERE article_id=$1`, [id]);
+            if(article.length === 0) {
+                return Promise.reject({status: 404, msg: `No article was found with the id ${id}`});
+            }
+
+            const { rows:comments } = await this.#db.query(`SELECT * FROM comments WHERE comments.article_id=$1 ORDER BY ${sortBy} ${order}`, [id]);
+            return comments;
+
         } catch(err) {
             return Promise.reject(err);
         }
