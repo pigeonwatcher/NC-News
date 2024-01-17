@@ -23,6 +23,7 @@ class Model {
         this.fetchCommentsByArticleID = this.fetchCommentsByArticleID.bind(this);
         this.addCommentToArticle = this.addCommentToArticle.bind(this);
         this.incrementArticleVotes = this.incrementArticleVotes.bind(this);
+        this.removeCommentByCommentID = this.removeCommentByCommentID.bind(this);
     }
 
     async init() {
@@ -137,6 +138,20 @@ class Model {
         `, [increment.inc_votes, id])
 
         return article[0];
+    }
+
+    async removeCommentByCommentID(id) {
+
+        try {
+
+            const { rows:removedComment } = await this.#db.query(`DELETE FROM comments WHERE comment_id=$1 RETURNING *`, [id]);
+            if(removedComment.length === 0) {
+                return Promise.reject({ status: 404, msg: `No comment with the id ${id} was found` })
+            }
+            return removedComment[0];
+        } catch(err) {
+            return Promise.reject(err);
+        }
     }
 
     async #getArticlesColumns() {

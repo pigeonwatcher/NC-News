@@ -54,5 +54,21 @@
         }
       ]
     }
+  },
+  "POST /api/articles/:article_id/comments": {
+    "description": "adds a comment to an article",
+    "examplePost": { 
+      "username": "YourUsername", 
+      "body": "Hello World!" 
+    }
+  },
+  "PATCH /api/articles/:article_id": {
+    "description": "increments the vote of an article",
+    "examplePatch": { 
+      "inc_votes": 1
+    }
+  },
+  "DELETE /api/comments/:comment_id": {
+    "description": "deletes a comment from an article"
   }
 }

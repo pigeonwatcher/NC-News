@@ -4,6 +4,7 @@ const db = require('../db/connection');
 const seed = require('../db/seeds/seed');
 const { articleData, commentData, topicData, userData } = require("../db/data/test-data/index.js");
 const fs = require("fs/promises");
+const { DESTRUCTION } = require("dns");
 require('jest-sorted');
 
 
@@ -258,6 +259,30 @@ describe('/PATCH', () => {
 
             expect(status).toBe(404);
             expect(body).toEqual({msg: `No article was found with the id 99999`});
+        })
+    })
+})
+
+describe('/DELETE', () => {
+    describe('Comments', () => {
+        test('DELETE: 204 Remove a comment using the comment ID', async () => {
+
+            const { status, res: { statusMessage } } = await request(app).delete('/api/comments/1');
+            expect(status).toBe(204);   
+            expect(statusMessage).toBe(`No Content`)         
+        })
+        test('DELETE: 400 Returns an error if given an invalid comment ID', async () => {
+
+            const { status, res: { statusMessage } } = await request(app).delete('/api/comments/abc');
+            expect(status).toBe(400);   
+            expect(statusMessage).toBe(`Bad Request`) 
+        })
+        test('DELETE: 404 Returns an error if no comment with the comment ID was found', async () => {
+ 
+            await request(app).delete('/api/comments/1');
+
+            const response = await request(app).delete('/api/comments/1');
+            expect(response.status).toBe(404);   
         })
     })
 })
