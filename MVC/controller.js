@@ -98,6 +98,17 @@ class Controller {
             next(err);
         }
     }
+
+    async getUsers(req, res, next) {
+     
+        try {
+            const { fetchAllUsers } = this.model;
+            const users = await fetchAllUsers();
+            res.status(200).send({ users });
+        } catch(err) {
+            next(err);
+        }
+    }
 }
 
 module.exports = Controller;

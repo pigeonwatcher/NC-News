@@ -24,6 +24,7 @@ class Model {
         this.addCommentToArticle = this.addCommentToArticle.bind(this);
         this.incrementArticleVotes = this.incrementArticleVotes.bind(this);
         this.removeCommentByCommentID = this.removeCommentByCommentID.bind(this);
+        this.fetchAllUsers = this.fetchAllUsers.bind(this);
     }
 
     async init() {
@@ -152,6 +153,11 @@ class Model {
         } catch(err) {
             return Promise.reject(err);
         }
+    }
+
+    async fetchAllUsers() {
+        const { rows:users } = await this.#db.query(`SELECT * FROM users`);
+        return users;
     }
 
     async #getArticlesColumns() {

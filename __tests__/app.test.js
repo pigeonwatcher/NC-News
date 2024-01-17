@@ -18,6 +18,7 @@ describe('/GET', () => {
 
             expect(status).toBe(200);
             expect(Array.isArray(topics)).toBe(true);
+            expect(topics.length).not.toBe(0);
             topics.forEach((topic) => {
                 expect(typeof topic.description).toBe('string');
                 expect(typeof topic.slug).toBe('string');
@@ -126,6 +127,22 @@ describe('/GET', () => {
             expect(status).toBe(404);
             expect(body).toEqual({msg: `No article was found with the id 99999`});
         })
+    })
+    describe('Users', () => {
+        test('GET: 200 Return an array of all users', async () => {
+            const { status, body: { users } } = await request(app).get('/api/users');
+
+            expect(status).toBe(200);
+            expect(Array.isArray(users)).toBe(true);
+            expect(users.length).not.toBe(0);
+            users.forEach((user) => {
+                expect(user).toMatchObject({
+                    username: expect.any(String),
+                    name: expect.any(String),
+                    avatar_url: expect.any(String)
+                });
+            })
+        }) 
     })
 })
 
