@@ -87,6 +87,17 @@ class Controller {
             next(err);
         }
     }
+
+    async deleteComment(req, res, next) {
+        try {
+            const { comment_id:id } = req.params;
+            const { removeCommentByCommentID } = this.model;
+            const comment = await removeCommentByCommentID(id);
+            res.status(204).send({ comment });
+        } catch(err) {
+            next(err);
+        }
+    }
 }
 
 module.exports = Controller;
