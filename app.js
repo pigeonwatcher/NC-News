@@ -8,6 +8,7 @@ const apiRouter = express.Router();
 const topicsRouter = express.Router();
 const articlesRouter = express.Router();
 const commentsRouter = express.Router();
+const usersRouter = express.Router();
 
 const model = new Model(db);
 (async() => { await model.init(); })();
@@ -18,12 +19,14 @@ app.use('/api', apiRouter);
 apiRouter.use('/topics', topicsRouter);
 apiRouter.use('/articles', articlesRouter);
 apiRouter.use('/comments', commentsRouter);
+apiRouter.use('/users', usersRouter);
 
 apiRouter.get('/', async(req, res, next) => controller.getEndpoints(req, res, next));
 topicsRouter.get('/', async(req, res, next) => await controller.getTopics(req, res, next));
 articlesRouter.get('/', async(req, res, next) => await controller.getArticles(req, res, next));
 articlesRouter.get('/:article_id/', async(req, res, next) => await controller.getArticle(req, res, next));
 articlesRouter.get('/:article_id/comments', async(req, res, next) => await controller.getArticleComments(req, res, next));
+usersRouter.get('/', async(req, res, next) => controller.getUsers(req, res, next))
 
 articlesRouter.post('/:article_id/comments', async(req, res, next) => await controller.postComment(req, res, next));
 
