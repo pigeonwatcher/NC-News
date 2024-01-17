@@ -45,7 +45,8 @@ class Controller {
 
         try {
             const { fetchAllArticles } = this.model;
-            const articles = await fetchAllArticles();
+            const { topic } = req.query;
+            const articles = await fetchAllArticles(topic);
             res.status(200).send({ articles });
         } catch(err) {
             next(err);

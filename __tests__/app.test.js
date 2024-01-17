@@ -52,7 +52,8 @@ describe('/GET', () => {
                 body: expect.any(String),
                 created_at: expect.any(String),
                 votes: expect.any(Number),
-                article_img_url: expect.any(String)
+                article_img_url: expect.any(String),
+                comment_count: expect.any(String)
             })
         })
         test('GET: 400 Return an error if given an invalid article ID', async () => {
@@ -86,6 +87,25 @@ describe('/GET', () => {
                     comment_count: expect.any(String)
                 });
             })
+        })
+        test('GET: 200 Return an array containing articles filtered by topic', async () => {
+
+            const { status, body: { articles } } = await request(app).get('/api/articles?topic=mitch');
+
+            expect(status).toBe(200);
+            expect(Array.isArray(articles)).toBe(true);
+            expect(articles.length).not.toBe(0);
+            articles.forEach((article) => {
+                expect(article.topic).toBe("mitch");
+            });
+        })
+        test('GET: 200 Returns an empty array if filtered topic does not exist', async () => {
+
+            const { status, body: { articles } } = await request(app).get('/api/articles?topic=eggs');
+
+            expect(status).toBe(200);
+            expect(Array.isArray(articles)).toBe(true);
+            expect(articles.length).toBe(0);
         })
     })
     describe("Comments", () => {
