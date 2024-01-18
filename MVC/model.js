@@ -12,35 +12,22 @@ class Model {
 
     constructor(db) {
         this.#db = db;
-
-        // Binding functionss here allow them to be more easily deconstructed in the controller :)
-        // Otherwise deconstruction will cause the function to loose its relationship with the Model object.
-        this.init = this.init.bind(this);
-        this.fetchAllTopics = this.fetchAllTopics.bind(this);
-        this.fetchAllEndpoints = this.fetchAllEndpoints.bind(this);
-        this.fetchArticleByID = this.fetchArticleByID.bind(this);
-        this.fetchAllArticles = this.fetchAllArticles.bind(this);
-        this.fetchCommentsByArticleID = this.fetchCommentsByArticleID.bind(this);
-        this.addCommentToArticle = this.addCommentToArticle.bind(this);
-        this.incrementArticleVotes = this.incrementArticleVotes.bind(this);
-        this.removeCommentByCommentID = this.removeCommentByCommentID.bind(this);
-        this.fetchAllUsers = this.fetchAllUsers.bind(this);
     }
 
-    async init() {
+    init = async () => {
         this.#validArticleColumns = await this.#getArticlesColumns(); // For future use.
     }
 
-    async fetchAllTopics() {
+    fetchAllTopics = async () => {
         const { rows:topics } = await this.#db.query(`SELECT * FROM topics`);
         return topics;
     }
 
-    async fetchAllEndpoints() {
+    fetchAllEndpoints = async () => {
         return JSON.parse(await fs.readFile(Model.#endpointsPath, 'utf8'));
     }
 
-    async fetchArticleByID(id) {
+    fetchArticleByID = async (id) => {
 
         const { rows:article } = await this.#db.query(`SELECT *, (SELECT COUNT(*) FROM comments WHERE $1=comments.article_id) as comment_count FROM articles WHERE article_id=$1`, [id]);
         if(article.length === 0) {
@@ -50,13 +37,15 @@ class Model {
         return article[0];
     }
 
-    async fetchAllArticles(topic = undefined, sortBy = 'created_at', order = 'desc') {
+    fetchAllArticles = async (topic = undefined, sortBy = 'created_at', order = 'desc') => {
 
-        if(!Model.#validOrders.includes(order.toLowerCase())) {
-            // In case order is not valid, go to default order (desc).
-            order = 'desc';
+        if(!this.#validArticleColumns.includes(sortBy) || sortBy === 'body') {
+            return Promise.reject({ status: 400 });
         }
 
+        if(!Model.#validOrders.includes(order.toLowerCase())) {
+            return Promise.reject({ status: 400 });
+        }
 
         let query = `SELECT article_id, title, topic, author, created_at, votes, article_img_url,
         (SELECT COUNT(*) FROM comments WHERE articles.article_id=comments.article_id) as comment_count
@@ -74,7 +63,7 @@ class Model {
         return articles;
     }
 
-    async fetchCommentsByArticleID(id, sortBy = 'created_at', order = 'asc') {
+    fetchCommentsByArticleID = async (id, sortBy = 'created_at', order = 'asc') => {
 
         if(!Model.#validOrders.includes(order.toLowerCase())) {
             order = 'asc';
@@ -88,7 +77,7 @@ class Model {
         return comments;
     }
 
-    async addCommentToArticle(id, commentReq) {
+    addCommentToArticle = async (id, commentReq) => {
 
         if(!this.#checkIfValidObject(Model.#validComment, commentReq)) {
             return Promise.reject({ status: 400 });
@@ -109,7 +98,7 @@ class Model {
         return comment[0];
     }
 
-    async incrementArticleVotes(id, increment) {
+    incrementArticleVotes = async (id, increment) => {
 
         if(!this.#checkIfValidObject(Model.#validVote, increment)) {
             return Promise.reject({ status: 400 });
@@ -129,7 +118,7 @@ class Model {
         return article[0];
     }
 
-    async removeCommentByCommentID(id) {
+    removeCommentByCommentID = async (id) => {
 
         const { rows:removedComment } = await this.#db.query(`DELETE FROM comments WHERE comment_id=$1 RETURNING *`, [id]);
         if(removedComment.length === 0) {
@@ -138,7 +127,7 @@ class Model {
         return removedComment[0];
     }
 
-    async fetchAllUsers() {
+    fetchAllUsers = async () => {
         const { rows:users } = await this.#db.query(`SELECT * FROM users`);
         return users;
     }

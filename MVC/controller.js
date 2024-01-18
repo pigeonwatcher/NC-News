@@ -4,8 +4,7 @@ class Controller {
         this.model = model;
     }
 
-    async getTopics(req, res, next) {
-
+    getTopics = async (req, res, next) => {
         try {
             const { fetchAllTopics } = this.model;
             const topics = await fetchAllTopics();
@@ -16,7 +15,7 @@ class Controller {
         }
     }
 
-    async getEndpoints(req, res, next) {
+    getEndpoints = async (req, res, next) => {
 
         try {
             const { fetchAllEndpoints } = this.model;
@@ -28,7 +27,7 @@ class Controller {
         }
     }
 
-    async getArticle(req, res, next) {
+    getArticle = async (req, res, next) => {
 
         try {
             const { article_id:id } = req.params;
@@ -41,19 +40,19 @@ class Controller {
         }
     }
 
-    async getArticles(req, res, next) {
+    getArticles = async (req, res, next) => {
 
         try {
             const { fetchAllArticles } = this.model;
-            const { topic } = req.query;
-            const articles = await fetchAllArticles(topic);
+            const { topic, sort_by:sortBy, order } = req.query;
+            const articles = await fetchAllArticles(topic, sortBy, order);
             res.status(200).send({ articles });
         } catch(err) {
             next(err);
         }
     }
 
-    async getArticleComments(req, res, next) {
+    getArticleComments = async (req, res, next) => {
 
         try {
             const { article_id:id } = req.params;
@@ -65,7 +64,7 @@ class Controller {
         }
     }
 
-    async postComment(req, res, next) {
+    postComment = async (req, res, next) => {
         try {
             const { article_id:id } = req.params;
             const commentReq = req.body;
@@ -77,7 +76,7 @@ class Controller {
         }
     }
 
-    async patchArticleVotes(req, res, next) {
+    patchArticleVotes = async (req, res, next) => {
         try {
             const { article_id:id } = req.params;
             const body = req.body;
@@ -89,7 +88,7 @@ class Controller {
         }
     }
 
-    async deleteComment(req, res, next) {
+    deleteComment = async (req, res, next) => {
         try {
             const { comment_id:id } = req.params;
             const { removeCommentByCommentID } = this.model;
@@ -100,7 +99,7 @@ class Controller {
         }
     }
 
-    async getUsers(req, res, next) {
+    getUsers = async (req, res, next) => {
      
         try {
             const { fetchAllUsers } = this.model;
