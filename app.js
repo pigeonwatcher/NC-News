@@ -1,9 +1,8 @@
 const express = require('express');
 const Model = require('./MVC/model');
 const Controller = require('./MVC/controller');
+const ErrorHandler = require('./error-handler');
 const db = require('./db/connection');
-
-const ErrorHandler = require('./error-handler')
 
 // Setup MVC.
 const model = new Model(db);
@@ -27,7 +26,6 @@ apiRouter.use('/comments', commentsRouter);
 apiRouter.use('/users', usersRouter);
 
 const errorHandler = new ErrorHandler(app);
-console.log(errorHandler);
 
 // Set Endpoints.
 apiRouter.get('/', async(req, res, next) => controller.getEndpoints(req, res, next));
