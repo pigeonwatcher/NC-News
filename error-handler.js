@@ -8,12 +8,12 @@ class ErrorHandler {
     constructor(app) {
         this.#app = app;
 
-        this.#app.use(this.handle400Error.bind(this));
-        this.#app.use(this.handle404Error.bind(this));
-        this.#app.use(this.handle500Error.bind(this));
+        app.use(this.handle400Error);
+        app.use(this.handle404Error);
+        app.use(this.handle500Error);
     }
 
-    handle400Error(err, req, res, next) {
+    handle400Error = (err, req, res, next) => {
 
         if(ErrorHandler.#_400.includes(err.code) || ErrorHandler.#_400.includes(err.status)) {
             res.status(400).send({msg: 'Bad Request'})
@@ -21,14 +21,14 @@ class ErrorHandler {
         next(err);
     }
     
-    handle404Error(err, req, res, next) {
+    handle404Error = (err, req, res, next) => {
         if (ErrorHandler.#_404.includes(err.status)) {
             res.status(404).send({msg: err.msg})
         }
         next(err)
     }
 
-    handle500Error(err, req, res, next) {
+    handle500Error = (err, req, res, next) => {
         if(ErrorHandler.#_500.includes(err.code)) {
             console.log(err);
             res.status(500).send(err)

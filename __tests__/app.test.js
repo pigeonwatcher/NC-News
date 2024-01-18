@@ -107,6 +107,29 @@ describe('/GET', () => {
             expect(Array.isArray(articles)).toBe(true);
             expect(articles.length).toBe(0);
         })
+        test('GET: 200 Return an array containing articles sorted by title in ascending order', async () => {
+
+            const { status, body: { articles } } = await request(app).get('/api/articles?sort_by=title&order=asc');
+
+            expect(status).toBe(200);
+            expect(Array.isArray(articles)).toBe(true);
+            expect(articles.length).not.toBe(0);
+            expect(articles).toBeSortedBy('title', { ascending: true });
+        })
+        test('GET: 400 Return an error if given an invalid sort by or order', async () => {
+
+            const { status:status1, body:body1 } = await request(app).get('/api/articles?sort_by=region&order=ascendingorder');
+            expect(status1).toBe(400);
+            expect(body1).toEqual({ msg: 'Bad Request' })
+
+            const { status:status2, body:body2 } = await request(app).get('/api/articles?sort_by=body&order=asc');
+            expect(status2).toBe(400);
+            expect(body2).toEqual({ msg: 'Bad Request' })
+
+            const { status:status3, body:body3 } = await request(app).get('/api/articles?sort_by=author&order=ascendingorder');
+            expect(status3).toBe(400);
+            expect(body3).toEqual({ msg: 'Bad Request' })
+        })
     })
     describe("Comments", () => {
 

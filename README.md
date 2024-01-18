@@ -57,4 +57,4 @@ Nevertheless, some key endpoints are...
 
 ## Special Thanks
 
-Massive thanks to my mentors Pippa and John at Northcoders for their valuable feedback throughout this project! :)
+Massive thanks to my mentors Pippa, John and Rich at Northcoders for their valuable feedback throughout this project! :)

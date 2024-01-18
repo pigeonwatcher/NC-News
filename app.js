@@ -4,43 +4,71 @@ const Controller = require('./MVC/controller');
 const ErrorHandler = require('./error-handler');
 const db = require('./db/connection');
 
-// Setup MVC.
-const model = new Model(db);
-(async() => { await model.init(); })();
-const controller = new Controller(model);
+class Server {
 
-// Setup Routers.
-const app = express();
-const apiRouter = express.Router();
-const topicsRouter = express.Router();
-const articlesRouter = express.Router();
-const commentsRouter = express.Router();
-const usersRouter = express.Router();
+    app;
 
-// Set Router Logic.
-app.use(express.json());
-app.use('/api', apiRouter);
-apiRouter.use('/topics', topicsRouter);
-apiRouter.use('/articles', articlesRouter);
-apiRouter.use('/comments', commentsRouter);
-apiRouter.use('/users', usersRouter);
-new ErrorHandler(app);
+    #model;
+    #controller;
 
-// Set Endpoints.
-apiRouter.get('/', async(req, res, next) => controller.getEndpoints(req, res, next));
-topicsRouter.get('/', async(req, res, next) => await controller.getTopics(req, res, next));
-articlesRouter.get('/', async(req, res, next) => await controller.getArticles(req, res, next));
-articlesRouter.get('/:article_id/', async(req, res, next) => await controller.getArticle(req, res, next));
-articlesRouter.get('/:article_id/comments', async(req, res, next) => await controller.getArticleComments(req, res, next));
-usersRouter.get('/', async(req, res, next) => controller.getUsers(req, res, next))
+    #apiRouter;
+    #topicsRouter;
+    #articlesRouter;
+    #commentsRouter;
+    #usersRouter;
 
-articlesRouter.post('/:article_id/comments', async(req, res, next) => await controller.postComment(req, res, next));
+    constructor() {
+        this.app = express();
+        this.#model = new Model(db);
+        this.#controller = new Controller(this.#model);
 
-articlesRouter.patch('/:article_id', async(req, res, next) => await controller.patchArticleVotes(req, res, next));
+        this.setRouters();
+        this.setEndpoints();
+        this.setErrorHandling();
+        this.start();
+    }
 
-commentsRouter.delete('/:comment_id', async(req, res, next) => await controller.deleteComment(req, res, next))
+    setRouters() {
+        // Setup Routers.
+        this.#apiRouter = express.Router();
+        this.#topicsRouter = express.Router();
+        this.#articlesRouter = express.Router();
+        this.#commentsRouter = express.Router();
+        this.#usersRouter = express.Router();
 
-// Error handling.
+        // Set Router Logic.
+        this.app.use(express.json());
+        this.app.use('/api', this.#apiRouter);
+        this.#apiRouter.use('/topics', this.#topicsRouter);
+        this.#apiRouter.use('/articles', this.#articlesRouter);
+        this.#apiRouter.use('/comments', this.#commentsRouter);
+        this.#apiRouter.use('/users', this.#usersRouter);
+    }
 
+    setEndpoints() {
+        this.#apiRouter.get('/', this.#controller.getEndpoints);
+        this.#topicsRouter.get('/', this.#controller.getTopics);
+        this.#articlesRouter.get('/', this.#controller.getArticles);
+        this.#articlesRouter.get('/:article_id/', this.#controller.getArticle);
+        this.#articlesRouter.get('/:article_id/comments', this.#controller.getArticleComments);
+        this.#usersRouter.get('/', this.#controller.getUsers)
 
-module.exports = app;
+        this.#articlesRouter.post('/:article_id/comments', this.#controller.postComment);
+
+        this.#articlesRouter.patch('/:article_id', this.#controller.patchArticleVotes);
+
+        this.#commentsRouter.delete('/:comment_id', this.#controller.deleteComment)
+    }
+
+    setErrorHandling() {
+        new ErrorHandler(this.app);
+    }
+
+    async start() {
+        this.#model.init();
+    }
+}
+
+const server = new Server();
+
+module.exports = server.app;
