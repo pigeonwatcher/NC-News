@@ -15,7 +15,7 @@ class Model {
     }
 
     init = async () => {
-        this.#validArticleColumns = await this.#getArticlesColumns(); // For future use.
+        this.#validArticleColumns = await this.#getArticlesColumns(); 
     }
 
     fetchAllTopics = async () => {
