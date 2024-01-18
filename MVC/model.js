@@ -42,92 +42,71 @@ class Model {
 
     async fetchArticleByID(id) {
 
-        try {
-            const { rows:article } = await this.#db.query(`SELECT *, (SELECT COUNT(*) FROM comments WHERE $1=comments.article_id) as comment_count FROM articles WHERE article_id=$1`, [id]);
-            if(article.length === 0) {
-                return Promise.reject(this.#errorArticleIDNotFound(id))
-            }
-    
-            return article[0];
-
-        } catch(err) {
-            return Promise.reject(err);
+        const { rows:article } = await this.#db.query(`SELECT *, (SELECT COUNT(*) FROM comments WHERE $1=comments.article_id) as comment_count FROM articles WHERE article_id=$1`, [id]);
+        if(article.length === 0) {
+            return Promise.reject(this.#errorArticleIDNotFound(id))
         }
+    
+        return article[0];
     }
 
     async fetchAllArticles(topic = undefined, sortBy = 'created_at', order = 'desc') {
 
-        try {
-
-            if(!Model.#validOrders.includes(order.toLowerCase())) {
-                // In case order is not valid, go to default order (desc).
-                order = 'desc';
-            }
-
-
-            let query = `SELECT article_id, title, topic, author, created_at, votes, article_img_url,
-            (SELECT COUNT(*) FROM comments WHERE articles.article_id=comments.article_id) as comment_count
-            FROM articles`;
-            const params = []
-
-            if(topic != undefined) {
-                query += ` ` + `WHERE topic LIKE $1`;
-                params.push(topic)
-            }
-
-            query += ` ` + `ORDER BY ${sortBy} ${order}`;
-
-            const { rows:articles } = await this.#db.query(query, params);
-            return articles;
-        } catch(err) {
-            return Promise.reject(err);
+        if(!Model.#validOrders.includes(order.toLowerCase())) {
+            // In case order is not valid, go to default order (desc).
+            order = 'desc';
         }
+
+
+        let query = `SELECT article_id, title, topic, author, created_at, votes, article_img_url,
+        (SELECT COUNT(*) FROM comments WHERE articles.article_id=comments.article_id) as comment_count
+        FROM articles`;
+        const params = []
+
+        if(topic != undefined) {
+            query += ` ` + `WHERE topic LIKE $1`;
+            params.push(topic)
+        }
+
+        query += ` ` + `ORDER BY ${sortBy} ${order}`;
+
+        const { rows:articles } = await this.#db.query(query, params);
+        return articles;
     }
 
     async fetchCommentsByArticleID(id, sortBy = 'created_at', order = 'asc') {
 
-        try {
-            if(!Model.#validOrders.includes(order.toLowerCase())) {
-                order = 'asc';
-            }
-            // Check if article exists.
-            if(!await this.#checkValidArticleID(id)) {
-                return Promise.reject(this.#errorArticleIDNotFound(id));
-            }
-
-            const { rows:comments } = await this.#db.query(`SELECT * FROM comments WHERE comments.article_id=$1 ORDER BY ${sortBy} ${order}`, [id]);
-            return comments;
-
-        } catch(err) {
-            return Promise.reject(err);
+        if(!Model.#validOrders.includes(order.toLowerCase())) {
+            order = 'asc';
         }
+        // Check if article exists.
+        if(!await this.#checkValidArticleID(id)) {
+            return Promise.reject(this.#errorArticleIDNotFound(id));
+        }
+
+        const { rows:comments } = await this.#db.query(`SELECT * FROM comments WHERE comments.article_id=$1 ORDER BY ${sortBy} ${order}`, [id]);
+        return comments;
     }
 
     async addCommentToArticle(id, commentReq) {
 
-        try {
-
-            if(!this.#checkIfValidObject(Model.#validComment, commentReq)) {
-                return Promise.reject({ status: 400 });
-            }
-
-            if(!await this.#checkValidArticleID(id)) {
-                return Promise.reject(this.#errorArticleIDNotFound(id));
-            }
-
-            const { rows:comment } = await this.#db.query(
-            `INSERT INTO comments
-            (article_id, author, body)
-            VALUES
-            ($1, $2, $3)
-            RETURNING *
-            `, [id, commentReq.username, commentReq.body]);
-
-            return comment[0];
-
-        } catch(err) {
-            return Promise.reject(err);
+        if(!this.#checkIfValidObject(Model.#validComment, commentReq)) {
+            return Promise.reject({ status: 400 });
         }
+
+        if(!await this.#checkValidArticleID(id)) {
+            return Promise.reject(this.#errorArticleIDNotFound(id));
+        }
+
+        const { rows:comment } = await this.#db.query(
+        `INSERT INTO comments
+        (article_id, author, body)
+        VALUES
+        ($1, $2, $3)
+        RETURNING *
+        `, [id, commentReq.username, commentReq.body]);
+
+        return comment[0];
     }
 
     async incrementArticleVotes(id, increment) {
@@ -152,16 +131,11 @@ class Model {
 
     async removeCommentByCommentID(id) {
 
-        try {
-
-            const { rows:removedComment } = await this.#db.query(`DELETE FROM comments WHERE comment_id=$1 RETURNING *`, [id]);
-            if(removedComment.length === 0) {
-                return Promise.reject({ status: 404, msg: `No comment with the id ${id} was found` })
-            }
-            return removedComment[0];
-        } catch(err) {
-            return Promise.reject(err);
+        const { rows:removedComment } = await this.#db.query(`DELETE FROM comments WHERE comment_id=$1 RETURNING *`, [id]);
+        if(removedComment.length === 0) {
+        return Promise.reject({ status: 404, msg: `No comment with the id ${id} was found` })
         }
+        return removedComment[0];
     }
 
     async fetchAllUsers() {
