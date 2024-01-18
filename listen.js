@@ -1,4 +1,10 @@
+/*
+    For purposes of hosting the API.
+*/
 const app = require('./app');
-const { PORT = 9090 } = process.env;
+const db = require('./db/connection');
 
-app.listen(PORT, () => console.log(`Listening on ${PORT}...`));
+if(!process.env.production) {
+    const { PORT = 9090 } = process.env;
+    app.listen(PORT, () => console.log(`Listening on ${PORT}...`));
+}
