@@ -24,8 +24,7 @@ apiRouter.use('/topics', topicsRouter);
 apiRouter.use('/articles', articlesRouter);
 apiRouter.use('/comments', commentsRouter);
 apiRouter.use('/users', usersRouter);
-
-const errorHandler = new ErrorHandler(app);
+new ErrorHandler(app);
 
 // Set Endpoints.
 apiRouter.get('/', async(req, res, next) => controller.getEndpoints(req, res, next));
