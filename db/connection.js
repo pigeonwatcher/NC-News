@@ -10,8 +10,7 @@ if(ENV === 'production') {
   config.connectionString = process.env.DATABASE_URL;
   config.max = 2;
 }
-
-if (!process.env.PGDATABASE) {
+else if (!process.env.PGDATABASE) {
   throw new Error('PGDATABASE not set');
 }
 
