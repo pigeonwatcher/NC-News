@@ -10,5 +10,9 @@ module.exports = [
   {
     description: 'what books are made of',
     slug: 'paper'
+  },
+  {
+    description: 'Exposing the dairy industry',
+    slug: 'milk'
   }
 ];
