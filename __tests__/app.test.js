@@ -186,6 +186,22 @@ describe('/GET', () => {
                 });
             })
         }) 
+        test('GET: 200 Return an object of a user with a matching username', async () => {
+            const { status, body: { user } } = await request(app).get('/api/users/butter_bridge');
+
+            expect(status).toBe(200);
+            expect(user).toMatchObject({
+                username: 'butter_bridge',
+                name: 'jonny',
+                avatar_url: 'https://www.healthytherapies.com/wp-content/uploads/2016/06/Lime3.jpg'
+            });
+        }) 
+        test('GET: 404 Return an error if given a non-existent username', async () => {
+            const { status, body } = await request(app).get('/api/users/margarine_bridge');
+
+            expect(status).toBe(404);
+            expect(body).toEqual({msg: `No user was found with the username margarine_bridge`});
+        })
     })
 })
 
@@ -255,6 +271,56 @@ describe('/POST', () => {
             expect(body).toEqual({msg: `No article was found with the id 99999`});
         })
     })
+    describe('Articles', () => {
+        test('POST: 201 Adds an article to the database and returns the posted article', async () => {
+
+            const articleToPost = {
+                author: 'butter_bridge',
+                title: 'Is it really not butter?',
+                body: `I can't believe its not butter and neither should you! ...`,
+                topic: 'milk',
+                article_img_url: 'https://'
+            }
+
+            const { status, body: { article } } = await request(app).post('/api/articles').send(articleToPost);
+
+            expect(status).toBe(201);
+            expect(article).toMatchObject({
+                article_id: expect.any(Number),
+                votes: 0,
+                created_at: expect.any(String),
+                comment_count: '0',
+            });
+        })
+        test('POST: 400 Return an error if given an invalid article format', async () => {
+            const articleToPost = {
+                author: 'butter_bridge',
+                title: 'Is it really not butter?',
+                main: `I can't believe its not butter and neither should you! ...`,
+                topic: 'milk',
+                article_img_url: 'https://'
+            }
+
+            const { status, body } = await request(app).post('/api/articles').send(articleToPost);
+
+            expect(status).toBe(400);
+            expect(body).toEqual({msg: 'Bad Request'});
+        })
+        test('POST: 400 Returns an error if post body has correct keys but incorrect values', async () => {
+            const articleToPost = {
+                author: 123,
+                title: 'Is it really not butter?',
+                body: `I can't believe its not butter and neither should you! ...`,
+                topic: 'milk',
+                article_img_url: 'https://'
+            }
+
+            const { status, body } = await request(app).post('/api/articles').send(articleToPost);
+
+            expect(status).toBe(400);
+            expect(body).toEqual({msg: 'Bad Request'})
+        })
+    })
 })
 
 describe('/PATCH', () => {
@@ -319,6 +385,65 @@ describe('/PATCH', () => {
 
             expect(status).toBe(404);
             expect(body).toEqual({msg: `No article was found with the id 99999`});
+        })
+    })
+    describe('Comments', () => {
+        test('PATCH: 201 Increment the votes of a comment and return the comment with the updated vote count', async () => {
+            const newVotes = {
+                inc_votes: 1,
+            }
+    
+            const { status, body: { comment } } = await request(app).patch('/api/comments/1').send(newVotes);
+
+            expect(status).toBe(200);
+            expect(comment).toMatchObject({
+                comment_id: 1,
+                author: expect.any(String),
+                body: expect.any(String),
+                created_at: expect.any(String),
+                votes: 17,
+                article_id: expect.any(Number)
+            })
+        })
+        test('PATCH: 400 Return an error if given an invalid vote format', async () => {
+            const newVotes = {
+                adjust_votes: 1,
+            }
+    
+            const { status, body } = await request(app).patch('/api/comments/1').send(newVotes);
+
+            expect(status).toBe(400);
+            expect(body).toEqual({msg: 'Bad Request'});
+        })
+        test('PATCH: 400 Returns an error if patch body has correct keys but incorrect values', async () => {
+            const newVotes = {
+                inc_votes: 'one',
+            }
+    
+            const { status, body } = await request(app).patch('/api/comments/1').send(newVotes);
+
+            expect(status).toBe(400);
+            expect(body).toEqual({msg: 'Bad Request'})
+        })
+        test('PATCH: 400 Return an error if given an invalid comment id', async () => {
+            const newVotes = {
+                inc_votes: 1,
+            }
+    
+            const { status, body } = await request(app).patch('/api/comments/abc').send(newVotes);
+
+            expect(status).toBe(400);
+            expect(body).toEqual({msg: 'Bad Request'});
+        })
+        test('PATCH: 404 Return an error if given a non-existent comment id', async () => {
+            const newVotes = {
+                inc_votes: 1,
+            }
+    
+            const { status, body } = await request(app).patch('/api/comments/99999').send(newVotes);
+
+            expect(status).toBe(404);
+            expect(body).toEqual({msg: `No comment was found with the id 99999`});
         })
     })
 })

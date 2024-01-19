@@ -9,6 +9,7 @@ class Model {
     static #validOrders = ['asc', 'desc'];
     static #validComment = { username: 'string', body: 'string' }
     static #validVote = { inc_votes: 'number' }
+    static #validArticle = { author: 'string', title: 'string', body: 'string', topic: 'string', article_img_url: 'string' }
 
     constructor(db) {
         this.#db = db;
@@ -127,9 +128,53 @@ class Model {
         return removedComment[0];
     }
 
+    incrementCommentVotes = async (id, increment) => {
+
+        if(!this.#checkIfValidObject(Model.#validVote, increment)) {
+            return Promise.reject({ status: 400 });
+        }
+
+        const { rows:comment } = await this.#db.query(
+        `UPDATE comments
+        SET votes = votes + $1
+        WHERE comment_id=$2
+        RETURNING *
+        `, [increment.inc_votes, id])
+        if(comment.length === 0) {
+            return Promise.reject({ status: 404, msg: `No comment was found with the id ${id}` });
+        }
+
+        return comment[0];
+    }
+
     fetchAllUsers = async () => {
         const { rows:users } = await this.#db.query(`SELECT * FROM users`);
         return users;
+    }
+
+    fetchUserByUsername = async (username) => {
+        const { rows:user } = await this.#db.query(`SELECT * FROM users WHERE username LIKE $1`, [username]);
+        if(user.length === 0) {
+            return Promise.reject({ status: 404, msg: `No user was found with the username ${username}` })
+            }
+        return user[0];
+    }
+
+    addArticle = async (articleReq) => {
+        if(!this.#checkIfValidObject(Model.#validArticle, articleReq)) {
+            return Promise.reject({ status: 400 });
+        }
+
+        const { rows:article } = await this.#db.query(
+        `INSERT INTO articles
+        (author, title, body, topic, article_img_url)
+        VALUES
+        ($1, $2, $3, $4, $5)
+        RETURNING article_id, votes, created_at,
+        (SELECT COUNT(*) FROM comments WHERE articles.article_id=comments.article_id) as comment_count
+        `, [articleReq.author, articleReq.title, articleReq.body, articleReq.topic, articleReq.article_img_url]);
+
+        return article[0];
     }
 
     async #getArticlesColumns() {

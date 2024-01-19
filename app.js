@@ -52,10 +52,13 @@ class Server {
         this.#articlesRouter.get('/:article_id/', this.#controller.getArticle);
         this.#articlesRouter.get('/:article_id/comments', this.#controller.getArticleComments);
         this.#usersRouter.get('/', this.#controller.getUsers)
+        this.#usersRouter.get('/:username', this.#controller.getUser)
 
         this.#articlesRouter.post('/:article_id/comments', this.#controller.postComment);
+        this.#articlesRouter.post('/', this.#controller.postArticle);
 
         this.#articlesRouter.patch('/:article_id', this.#controller.patchArticleVotes);
+        this.#commentsRouter.patch('/:comment_id', this.#controller.patchCommentVotes);
 
         this.#commentsRouter.delete('/:comment_id', this.#controller.deleteComment)
     }

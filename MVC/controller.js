@@ -99,12 +99,47 @@ class Controller {
         }
     }
 
+    patchCommentVotes = async (req, res, next) => {
+        try {
+            const { comment_id:id } = req.params;
+            const body = req.body;
+            const { incrementCommentVotes } = this.model;
+            const comment = await incrementCommentVotes(id, body);
+            res.status(200).send({ comment });
+        } catch(err) {
+            next(err);
+        }
+    }
+
     getUsers = async (req, res, next) => {
      
         try {
             const { fetchAllUsers } = this.model;
             const users = await fetchAllUsers();
             res.status(200).send({ users });
+        } catch(err) {
+            next(err);
+        }
+    }
+
+    getUser = async (req, res, next) => {
+     
+        try {
+            const { username } = req.params;
+            const { fetchUserByUsername } = this.model;
+            const user = await fetchUserByUsername(username);
+            res.status(200).send({ user });
+        } catch(err) {
+            next(err);
+        }
+    }
+
+    postArticle = async (req, res, next) => {
+        try {
+            const articleReq = req.body;
+            const { addArticle } = this.model;
+            const article = await addArticle(articleReq);
+            res.status(201).send({ article });
         } catch(err) {
             next(err);
         }
