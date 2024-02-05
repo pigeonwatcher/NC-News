@@ -3,6 +3,7 @@ const Model = require('./MVC/model');
 const Controller = require('./MVC/controller');
 const ErrorHandler = require('./error-handler');
 const db = require('./db/connection');
+const cors = require('cors');
 
 class Server {
 
@@ -22,6 +23,7 @@ class Server {
         this.#model = new Model(db);
         this.#controller = new Controller(this.#model);
 
+        this.app.use(cors());
         this.setRouters();
         this.setEndpoints();
         this.setErrorHandling();
