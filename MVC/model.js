@@ -64,10 +64,9 @@ class Model {
         return articles;
     }
 
-    fetchCommentsByArticleID = async (id, sortBy = 'created_at', order = 'asc') => {
-
+    fetchCommentsByArticleID = async (id, sortBy = 'created_at', order = 'desc') => {
         if(!Model.#validOrders.includes(order.toLowerCase())) {
-            order = 'asc';
+            order = 'desc';
         }
         // Check if article exists.
         if(!await this.#checkValidArticleID(id)) {

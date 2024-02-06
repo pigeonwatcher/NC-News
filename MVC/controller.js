@@ -56,8 +56,9 @@ class Controller {
 
         try {
             const { article_id:id } = req.params;
+            const { sort_by:sortBy, order } = req.query;
             const { fetchCommentsByArticleID } = this.model;
-            const comments = await fetchCommentsByArticleID(id);
+            const comments = await fetchCommentsByArticleID(id, sortBy, order);
             res.status(200).send({ comments });
         } catch(err) {
             next(err);

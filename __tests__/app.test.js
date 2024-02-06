@@ -138,7 +138,26 @@ describe('/GET', () => {
 
             expect(status).toBe(200);
 
-            expect(comments).toBeSortedBy('created_at', { ascending: true })
+            expect(comments).toBeSortedBy('created_at', { descending: true })
+            expect(comments.length).not.toBe(0);
+
+            comments.forEach((comment) => {
+                expect(comment).toMatchObject({
+                    comment_id: expect.any(Number),
+                    votes: expect.any(Number),
+                    created_at: expect.any(String),
+                    author: expect.any(String),
+                    body: expect.any(String),
+                    article_id: 1,
+                });
+            })
+        })
+        test('GET: 200 Return an array of comments with the matching article ID in descending order', async () => {
+            const { status, body: { comments } } = await request(app).get('/api/articles/1/comments?sort_by=votes&order=asc');
+
+            expect(status).toBe(200);
+
+            expect(comments).toBeSortedBy('votes', { ascending: true })
             expect(comments.length).not.toBe(0);
 
             comments.forEach((comment) => {
