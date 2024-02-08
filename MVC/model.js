@@ -178,7 +178,9 @@ class Model {
 
     async #getArticlesColumns() {
         const { rows:columnNames } = await this.#db.query(`SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='articles'`);
-        return columnNames.map((column) => { return column.column_name })
+        const columns = columnNames.map((column) => { return column.column_name })
+        columns.push('comment_count');
+        return columns;
     }
 
     async #checkValidArticleID(id) {
