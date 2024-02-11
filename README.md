@@ -4,7 +4,7 @@ A JavaScript back-end API project which aims to mimic a real-world backend servi
 
 Website: https://nc-news-th0a.onrender.com
 
-The front-end API for this project can be found here:
+The front-end app for this project can be found here:
 
 https://github.com/pigeonwatcher/NC-News-FE
 
